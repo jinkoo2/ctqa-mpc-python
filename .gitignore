@@ -9,5 +9,5 @@ packaging/CTQAMPC.spec
 venv/
 .env
 /settings.json
-# Local-only: _sample_data, _logs, _users, etc.
-/_*
+# Local-only: _sample_data, _logs, _users, etc. (at any depth)
+**/_*
