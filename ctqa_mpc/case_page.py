@@ -1,4 +1,4 @@
-"""Case tab: HTML-report sections plus View Image / Run Analysis / View Report."""
+"""Case tab: HTML-report sections plus View Image / Run Analysis from Case Folder / View Report."""
 
 from __future__ import annotations
 
@@ -115,7 +115,7 @@ class CasePage(QWidget):
         meta.addStretch(1)
 
         self.view_image_btn = QPushButton("View Image")
-        self.run_btn = QPushButton("Run Analysis")
+        self.run_btn = QPushButton("Run Analysis from Case Folder")
         self.report_btn = QPushButton("View Report")
         self.baseline_btn = QPushButton("Show Baseline")
         self.view_image_btn.clicked.connect(self.view_image)
@@ -207,7 +207,7 @@ class CasePage(QWidget):
             QMessageBox.information(
                 self,
                 "No report",
-                "No report.html yet. Run Analysis first.",
+                "No report.html yet. Run Analysis from Case Folder first.",
             )
             return
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(path.resolve())))

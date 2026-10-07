@@ -764,7 +764,7 @@ class MainWindow(QMainWindow):
         )
         settings_act = self._make_action("Settings", "settings", self.open_settings, "Ctrl+,")
         help_act = self._make_action("Help", "help", self._show_help)
-        run_act = QAction("Run Analysis", self)
+        run_act = QAction("Run Analysis from Case Folder", self)
         run_act.setShortcut("Ctrl+R")
         run_act.triggered.connect(self._run_current_case)
         self.addAction(run_act)
@@ -796,7 +796,7 @@ class MainWindow(QMainWindow):
         if is_simple_run_mode(self.settings):
             self.hint.setText(
                 "Simple mode: Open Case picks a case folder and opens it as a tab. "
-                "Use View Image, Run Analysis, View Report, and Show Baseline on the case tab."
+                "Use View Image, Run Analysis from Case Folder, View Report, and Show Baseline on the case tab."
             )
         else:
             self.hint.setText(
@@ -1110,7 +1110,7 @@ class MainWindow(QMainWindow):
             "under Watcher.watch_path, then sorts DICOM, finds the 16 BBs, emails "
             "the HTML report, and opens the published case (same as --mode service).\n\n"
             "On the case tab: View Image opens vtk_image_labeler_3d on today's CT. "
-            "Run Analysis starts the pipeline (Ctrl+R). "
+            "Run Analysis from Case Folder starts the pipeline (Ctrl+R). "
             "View Report opens results/report.html (or the C# out/report.html). "
             "Show Baseline opens that machine's baseline_dir (no machine picker).\n\n"
             "Settings: Institution, RunMode, Identity (OSUser default, or None / OIDC), "
