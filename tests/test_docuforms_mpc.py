@@ -34,7 +34,7 @@ def _write(path: Path, text: str) -> None:
 
 def _make_case(tmp_path: Path) -> tuple[Path, dict]:
     case = tmp_path / "20260928_075003_JA"
-    analysis = case / "3.analysis"
+    analysis = case / "results"
     _write(
         analysis / "comparison_points.csv",
         "Name, x,y,z, x_ref, y_ref, z_ref, Distance[mm], Result\n"
@@ -150,7 +150,7 @@ def test_run_post_processing_disabled(tmp_path, monkeypatch):
 
 def test_zip_dicoms_packs_input_dcm(tmp_path):
     case, _machine = _make_case(tmp_path)
-    (case / "3.analysis" / "ignore.dcm").write_bytes(b"DICM")
+    (case / "results" / "ignore.dcm").write_bytes(b"DICM")
     dest = tmp_path / "input_dcm.zip"
     assert zip_dicoms(case, dest) is True
     import zipfile
@@ -158,7 +158,7 @@ def test_zip_dicoms_packs_input_dcm(tmp_path):
     with zipfile.ZipFile(dest) as zf:
         names = zf.namelist()
     assert "CT.1.dcm" in names
-    assert all("3.analysis" not in name for name in names)
+    assert all("results" not in name for name in names)
 
 
 def test_upload_case_posts(tmp_path, monkeypatch):
@@ -233,7 +233,7 @@ def test_upload_case_attaches_full_report_pdf(tmp_path, monkeypatch):
     )
     assert status == "ok"
     assert "report.pdf" in uploaded
-    assert (case / "3.analysis" / "report.pdf").is_file()
+    assert (case / "results" / "report.pdf").is_file()
 
 
 def test_mpc_form_html_fields():

@@ -23,9 +23,9 @@ CSV_SKIP_SUBSTR = ("copy",)
 
 
 def analysis_dir(folder: str | Path) -> Path:
-    """Prefer ``3.analysis``; fall back to C# ``out`` when that is all a case has."""
+    """Prefer ``results``; fall back to C# ``out`` when that is all a case has."""
     folder = Path(folder)
-    nested = folder / "3.analysis"
+    nested = folder / "results"
     legacy = folder / "out"
     if (nested / CASE_RESULT_NAME).is_file() or (nested / "report.html").is_file() or (nested / "points.txt").is_file():
         return nested
@@ -44,7 +44,7 @@ def analysis_result_path(folder: str | Path) -> Path:
 
 def case_result_path(folder: str | Path) -> Path:
     folder = Path(folder)
-    nested = folder / "3.analysis" / CASE_RESULT_NAME
+    nested = folder / "results" / CASE_RESULT_NAME
     if nested.is_file():
         return nested
     legacy = folder / "out" / CASE_RESULT_NAME
@@ -458,7 +458,7 @@ def _csv_has_fail(path: Path) -> bool | None:
 def read_case_result(folder: str | Path) -> str | None:
     folder = Path(folder)
     for path in (
-        folder / "3.analysis" / CASE_RESULT_NAME,
+        folder / "results" / CASE_RESULT_NAME,
         folder / "out" / CASE_RESULT_NAME,
         folder / CASE_RESULT_NAME,
     ):
@@ -482,7 +482,7 @@ def read_case_result(folder: str | Path) -> str | None:
 
 def analysis_tables_for_display(folder: str | Path) -> list[tuple[str, list[list[str]]]]:
     folder = Path(folder)
-    dest = analysis_dir(folder) if (folder / "3.analysis").is_dir() or (folder / "out").is_dir() else folder
+    dest = analysis_dir(folder) if (folder / "results").is_dir() or (folder / "out").is_dir() else folder
     tables: list[tuple[str, list[list[str]]]] = []
     for name, title in (
         ("comparison_points.csv", "Points"),

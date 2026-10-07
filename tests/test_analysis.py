@@ -90,9 +90,9 @@ def test_analyze_writes_pass_result(tmp_path):
     ct = _volume_with_bbs(seeds)
     baseline = tmp_path / "baseline"
     case = tmp_path / "case"
-    analyze(ct, baseline / "3.analysis", machine)
-    analyze(ct, case / "3.analysis", machine)
-    summary = write_case_result(case / "3.analysis", baseline, machine)
+    analyze(ct, baseline / "results", machine)
+    analyze(ct, case / "results", machine)
+    summary = write_case_result(case / "results", baseline, machine)
     data = __import__("json").loads(summary.read_text(encoding="utf-8"))
     assert data["result"] == "pass"
     report = build_case_report(case, machine)

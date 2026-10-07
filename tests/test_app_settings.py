@@ -6,7 +6,6 @@ from ctqa_mpc.app_settings import (
     SETTINGS_NAME,
     check_settings_paths,
     collect_settings_path_checks,
-    elastix_dir_setting,
     is_case_folder_name,
     is_under_directory,
     list_case_folders,
@@ -75,12 +74,6 @@ def test_is_simple_run_mode(tmp_path, monkeypatch):
     case = tmp_path / "CTSim1" / "20260928_075003"
     case.mkdir(parents=True)
     assert simple_machine_name(case) == "CTSim1"
-
-
-def test_elastix_dir_setting():
-    assert elastix_dir_setting({"Elastix": {"elastix_dir": r"C:\elastix"}}) == r"C:\elastix"
-    assert elastix_dir_setting({"elastix_dir": r"D:\apps\elastix"}) == r"D:\apps\elastix"
-    assert elastix_dir_setting({}) == ""
 
 
 def test_list_case_folders(tmp_path):

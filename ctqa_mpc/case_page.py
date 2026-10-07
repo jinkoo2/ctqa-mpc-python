@@ -213,7 +213,7 @@ class CasePage(QWidget):
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(path.resolve())))
 
     def _report_path(self) -> Path | None:
-        for path in (self.folder / "3.analysis" / "report.html", self.folder / "out" / "report.html"):
+        for path in (self.folder / "results" / "report.html", self.folder / "out" / "report.html"):
             if path.is_file():
                 return path
         return None

@@ -21,7 +21,6 @@ RUN_MODE_SIMPLE = "Simple"
 RUN_MODES = (RUN_MODE_CLINIC, RUN_MODE_SIMPLE)
 NOTIFICATIONS_KEY = "Notifications"
 WATCHER_KEY = "Watcher"
-ELASTIX_KEY = "Elastix"
 POST_PROCESSING_KEY = "PostProcessing"
 DOCUFORMS2_MPC_TYPE = "docuforms2_mpc"
 DOCUFORMS2_CTQA_TYPE = "docuforms2_ctqa"
@@ -402,20 +401,6 @@ def watcher_case_folder_regex(data: dict | None = None) -> str:
     if "case_folder_name_regex" in block:
         return str(block.get("case_folder_name_regex") or "")
     return DEFAULT_CASE_FOLDER_REGEX
-
-
-def elastix_settings(data: dict | None = None) -> dict:
-    settings = data if data is not None else load_settings()
-    block = settings.get(ELASTIX_KEY) or {}
-    return block if isinstance(block, dict) else {}
-
-
-def elastix_dir_setting(data: dict | None = None) -> str:
-    settings = data if data is not None else load_settings()
-    folder = str(elastix_settings(settings).get("elastix_dir") or "").strip()
-    if folder:
-        return folder
-    return str(settings.get("elastix_dir") or "").strip()
 
 
 def notifications(data: dict | None = None) -> dict:

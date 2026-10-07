@@ -35,7 +35,7 @@ def ensure_baseline_result(baseline: Path, machine: dict) -> Path:
     ct_path = find_image(baseline, "CT") or find_image(dest, "CT")
     if ct_path is None:
         ct_path = ensure_ct_mha(baseline)
-    out = dest if dest.is_dir() else baseline / "3.analysis"
+    out = dest if dest.is_dir() else baseline / "results"
     analyze(read_image(ct_path), out, machine)
     return out
 
@@ -58,7 +58,7 @@ def run_case(
 
     ct_path = ensure_ct_mha(case)
     ensure_baseline_result(baseline, machine)
-    result_dir = case / "3.analysis"
+    result_dir = case / "results"
     analyze(read_image(ct_path), result_dir, machine)
     write_case_result(result_dir, baseline, machine)
     report = write_report(case, baseline, result_dir, machine)

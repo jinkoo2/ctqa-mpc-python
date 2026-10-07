@@ -34,7 +34,6 @@ from .app_settings import (
     DEFAULT_TEMP_CLEANUP_OLDER_THAN_DAYS,
     TEMP_CLEANUP_OLDER_THAN_DAYS_KEY,
     DOCUFORMS2_MPC_TYPE,
-    ELASTIX_KEY,
     ERROR_EMAIL_TO_KEY,
     EVENT_EMAIL_TO_KEY,
     INSTITUTION_KEY,
@@ -47,7 +46,6 @@ from .app_settings import (
     WATCHER_KEY,
     chat_webhook_urls,
     default_docuforms2_mpc_step,
-    elastix_dir_setting,
     email_settings,
     find_docuforms2_step,
     format_form_ids,
@@ -315,8 +313,6 @@ class SettingsDialog(QDialog):
         self.run_mode.addItems(list(RUN_MODES))
         mode_idx = self.run_mode.findText(get_run_mode(self._data))
         self.run_mode.setCurrentIndex(mode_idx if mode_idx >= 0 else 0)
-        self.elastix_dir = QLineEdit(elastix_dir_setting(self._data))
-        self.elastix_dir.setPlaceholderText(r"C:\elastix")
         self.path_label = QLabel(str(settings_path()))
         self.path_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.path_label.setWordWrap(True)
@@ -505,7 +501,6 @@ class SettingsDialog(QDialog):
         form = QFormLayout()
         form.addRow("Institution", self.institution)
         form.addRow("RunMode", self.run_mode)
-        form.addRow("elastix_dir", self.elastix_dir)
         form.addRow("Settings file", self.path_label)
         layout.addLayout(form)
         layout.addWidget(
@@ -513,7 +508,6 @@ class SettingsDialog(QDialog):
                 "Clinic: Open Case picks a configured machine, then a case under cases_dir. "
                 "Simple: Open Case picks a case folder; the parent folder is the machine name. "
                 "Simple is also used when this file is missing or MACHINES is empty. "
-                "elastix_dir is the folder with elastix.exe and transformix.exe (same as C#). "
                 "Login is on the Identity tab. The Windows watch service is on the Watcher tab. "
                 "Error alerts (email and chat) are on the Email "
                 "and Chat webhooks tabs. DocuForms2 upload is on Post-processing. "
@@ -747,10 +741,6 @@ class SettingsDialog(QDialog):
         data = json.loads(json.dumps(self._data))
         data[INSTITUTION_KEY] = self.institution.text().strip()
         data[RUN_MODE_KEY] = self.run_mode.currentText() or RUN_MODE_CLINIC
-        elastix = data.get(ELASTIX_KEY) if isinstance(data.get(ELASTIX_KEY), dict) else {}
-        elastix = dict(elastix)
-        elastix["elastix_dir"] = self.elastix_dir.text().strip()
-        data[ELASTIX_KEY] = elastix
         ident = identity_block(self._data)
         ident["user_id_method"] = self.user_id_method.currentText() or USER_ID_OSUSER
         ident["oidc"] = {

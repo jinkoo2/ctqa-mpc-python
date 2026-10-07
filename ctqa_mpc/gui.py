@@ -139,7 +139,7 @@ def case_display_name(folder: Path | None, machine: dict | None = None) -> str:
 
 
 def case_csv_dir(folder: Path) -> Path:
-    analysis = folder / "3.analysis"
+    analysis = folder / "results"
     return analysis if analysis.is_dir() else folder
 
 
@@ -153,7 +153,7 @@ def case_status(folder: Path) -> str:
 def find_html_report(folder: Path | None) -> Path | None:
     if folder is None:
         return None
-    path = Path(folder) / "3.analysis" / "report.html"
+    path = Path(folder) / "results" / "report.html"
     return path if path.is_file() else None
 
 
@@ -328,7 +328,7 @@ class ScanCasesWorker(QThread):
 def analysis_file_names(folder: Path) -> list[str]:
     names: list[str] = []
     seen: set[str] = set()
-    for root in (folder / "3.analysis", folder):
+    for root in (folder / "results", folder):
         for name in ("report.html", CASE_RESULT_NAME, RESULT_JSON_NAME):
             if name in seen:
                 continue
@@ -1111,7 +1111,7 @@ class MainWindow(QMainWindow):
             "the HTML report, and opens the published case (same as --mode service).\n\n"
             "On the case tab: View Image opens vtk_image_labeler_3d on today's CT. "
             "Run Analysis starts the pipeline (Ctrl+R). "
-            "View Report opens 3.analysis/report.html (or the C# out/report.html). "
+            "View Report opens results/report.html (or the C# out/report.html). "
             "Show Baseline opens that machine's baseline_dir (no machine picker).\n\n"
             "Settings: Institution, RunMode, Identity (OSUser default, or None / OIDC), "
             "email, chat webhooks, Image Labeler 3D path, and Watcher "

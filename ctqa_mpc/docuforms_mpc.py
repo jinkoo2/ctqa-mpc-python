@@ -479,7 +479,7 @@ def upload_file(
     return {"url": url, "originalName": original_name}
 
 
-_ZIP_SKIP_DIRS = {"3.analysis", "out", "1.reg", "2.seg"}
+_ZIP_SKIP_DIRS = {"results", "out", "1.reg", "2.seg"}
 
 
 def _is_input_dicom(path: Path) -> bool:
@@ -515,7 +515,7 @@ def zip_dicoms(case_dir: Path, dest: Path) -> bool:
 
 def case_report_html(case_dir: Path) -> Path | None:
     dest = analysis_dir(case_dir)
-    for path in (dest / "report.html", Path(case_dir) / "3.analysis" / "report.html", Path(case_dir) / "report.html"):
+    for path in (dest / "report.html", Path(case_dir) / "results" / "report.html", Path(case_dir) / "report.html"):
         if path.is_file():
             return path
     return None
