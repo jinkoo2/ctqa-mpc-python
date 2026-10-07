@@ -53,6 +53,14 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 """
 
 
+def _fmt(value: float, num_format: str) -> str:
+    if num_format == "0.00":
+        return f"{value:.2f}"
+    if num_format == "0.0":
+        return f"{value:.1f}"
+    return str(value)
+
+
 def analysis_is_done(case_dir: str | Path) -> bool:
     dest = analysis_dir(case_dir)
     return (dest / "result.json").is_file() or (dest / "report.html").is_file() or (dest / "comparison_points.csv").is_file()

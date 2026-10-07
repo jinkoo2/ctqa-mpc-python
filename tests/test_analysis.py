@@ -13,7 +13,7 @@ from ctqa_mpc.analysis import (
     write_case_result,
 )
 from ctqa_mpc.app_settings import is_case_folder_name, machine_by_patient_station
-from ctqa_mpc.report import build_case_report
+from ctqa_mpc.report import _fmt, build_case_report
 
 
 def _machine():
@@ -121,3 +121,8 @@ def test_case_folder_operator_suffix():
     assert is_case_folder_name("08212019_000000_JK")
     assert not is_case_folder_name("10022026_DailyQA")
     assert not is_case_folder_name("scratch")
+
+
+def test_report_fmt():
+    assert _fmt(1.84, "0.0") == "1.8"
+    assert _fmt(1.84, "0.00") == "1.84"
