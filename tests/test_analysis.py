@@ -112,14 +112,14 @@ def test_machine_by_patient_station():
     }
     assert machine_by_patient_station("MPC", "CTSIM", data)["NAME"] == "GECTSH"
     assert machine_by_patient_station("jk", "ctsim", data)["NAME"] == "GECTSH"
-    assert machine_by_patient_station("dailyqa", "ctsim", data) is None
+    assert machine_by_patient_station("other", "ctsim", data) is None
 
 
 def test_case_folder_operator_suffix():
     assert is_case_folder_name("20261005_122239_JK")
     assert is_case_folder_name("20261005_122239")
     assert is_case_folder_name("08212019_000000_JK")
-    assert not is_case_folder_name("10022026_DailyQA")
+    assert not is_case_folder_name("10022026_Misc")
     assert not is_case_folder_name("scratch")
 
 

@@ -8,7 +8,7 @@ def test_case_folder_matches_mpc():
     assert case_folder_matches("10022026_MPC", DEFAULT_CASE_FOLDER_REGEX)
     assert case_folder_matches("01012026_MPC", DEFAULT_CASE_FOLDER_REGEX)
     assert not case_folder_matches("foo_mpc_bar", DEFAULT_CASE_FOLDER_REGEX)
-    assert not case_folder_matches("10022026_DailyQA", DEFAULT_CASE_FOLDER_REGEX)
+    assert not case_folder_matches("10022026_Misc", DEFAULT_CASE_FOLDER_REGEX)
     assert not case_folder_matches("10022026_mpc", DEFAULT_CASE_FOLDER_REGEX)
     assert not case_folder_matches("scratch", DEFAULT_CASE_FOLDER_REGEX)
     assert case_folder_matches("anything", "")
@@ -19,8 +19,8 @@ def test_watcher_case_folder_regex_default_and_empty():
     assert watcher_case_folder_regex({"Watcher": {}}) == DEFAULT_CASE_FOLDER_REGEX
     assert watcher_case_folder_regex({"Watcher": {"CASE_FOLDER_NAME_REGEX": ""}}) == ""
     assert (
-        watcher_case_folder_regex({"Watcher": {"CASE_FOLDER_NAME_REGEX": r"^\d{8}_DailyQA$"}})
-        == r"^\d{8}_DailyQA$"
+        watcher_case_folder_regex({"Watcher": {"CASE_FOLDER_NAME_REGEX": r"^\d{8}_Misc$"}})
+        == r"^\d{8}_Misc$"
     )
     assert watcher_case_folder_regex({"case_folder_name_regex": r"^x$"}) == r"^x$"
 
@@ -34,7 +34,7 @@ def _stub_sort(monkeypatch, tmp_path, series_list):
 
 
 def test_process_import_dir_strict_no_series(tmp_path, monkeypatch):
-    import_dir = tmp_path / "10022026_DailyQA"
+    import_dir = tmp_path / "10022026_Misc"
     import_dir.mkdir()
     _stub_sort(monkeypatch, tmp_path, [])
     assert process_import_dir(import_dir, {}, send_email=False, strict=False) == []

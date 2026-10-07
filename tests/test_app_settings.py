@@ -31,7 +31,7 @@ def test_strip_jsonc():
 def test_machine_by_station():
     data = {
         "MACHINES": [
-            {"NAME": "CTSim1", "station_names": ["ctsim", "daily qa_ctsim"]}
+            {"NAME": "CTSim1", "station_names": ["ctsim", "other_ctsim"]}
         ]
     }
     m = machine_by_station("CTSIM", data)
@@ -83,7 +83,7 @@ def test_list_case_folders(tmp_path):
     (cases / "20200101_000000_SL").mkdir()
     (cases / ".skip").mkdir()
     (cases / "scratch").mkdir()
-    (cases / "10022026_DailyQA").mkdir()
+    (cases / "10022026_Misc").mkdir()
     (cases / "20260928").mkdir()
     folders = list_case_folders({"cases_dir": str(cases)})
     assert [p.name for p in folders] == ["20260929_080000_JK", "20260928_075003", "20200101_000000_SL"]
@@ -91,13 +91,13 @@ def test_list_case_folders(tmp_path):
     assert list_case_folders({"cases_dir": str(tmp_path / "missing")}) == []
     assert is_case_folder_name("20260928_075003")
     assert is_case_folder_name("20261005_122239_JK")
-    assert not is_case_folder_name("10022026_DailyQA")
+    assert not is_case_folder_name("10022026_Misc")
     assert not is_case_folder_name("20261301_000000")
 
 
 def test_is_under_directory(tmp_path):
     root = tmp_path / "watch"
-    child = root / "10022026_DailyQA"
+    child = root / "10022026_Misc"
     nested = child / "sub"
     sibling = tmp_path / "watch_other" / "case"
     nested.mkdir(parents=True)

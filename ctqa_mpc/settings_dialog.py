@@ -223,7 +223,7 @@ class InstallWatchServiceDialog(QDialog):
         layout.addLayout(form)
         layout.addWidget(
             _hint_label(
-                "Installs the DailyQA watcher with NSSM (https://nssm.cc). Packaged app: "
+                "Installs the CTQA-MPC watcher with NSSM (https://nssm.cc). Packaged app: "
                 "CTQAMPC.exe --mode service. From source: python.exe with "
                 "-u -m ctqa_mpc watch. settings_file and users_folder are passed "
                 "as environment variables (do not put --settings or --users in arguments). "

@@ -181,9 +181,9 @@ def watch(watch_path: str = "", data: dict | None = None) -> None:
             if not _should_handle(folder, case_regex):
                 logger.info("not a case folder (%s), skip: %s", case_regex or "any", folder)
                 return
-            send_event("CTQA-MPC DailyQA folder", str(folder), settings)
+            send_event("CTQA-MPC new case folder", str(folder), settings)
             if not wait_for_files(folder, min_files, poll, max_cycles):
-                send_error_email("waited enough for DailyQA files", str(folder), context="watcher")
+                send_error_email("waited long enough for case files", str(folder), context="watcher")
                 return
             process_import_dir(folder, settings)
             send_event("CTQA-MPC case done", str(folder), settings)
