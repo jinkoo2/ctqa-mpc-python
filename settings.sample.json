@@ -17,8 +17,8 @@
   "Watcher": {
     "watch_path": "\\\\fileserver\\QA\\CT_Import",
     "data_root": "\\\\fileserver\\QA\\CTQA-MPC",
-    "CASE_FOLDER_NAME_REGEX": "(?i).*_mpc.*",
-    "min_num_of_files": 401,
+    "CASE_FOLDER_NAME_REGEX": "^\\d{8}_MPC$",
+    "min_num_of_files": 457,
     "queued_case_poll_sec": 10.0,
     "max_wait_cycles": 180,
     "disk_scan_for_new_case_detection": true,
@@ -51,7 +51,7 @@
     {
       "NAME": "CTSim1",
       "station_names": ["ctsim"],
-      "patient_last_names": ["mpc", "jk"],
+      "patient_last_names": ["mpc"],
       "phantom": { "id": "mpc", "name": "MPC" },
       "machine_dir": "\\\\fileserver\\QA\\CTQA-MPC\\CTSim1",
       "baseline_dir": "\\\\fileserver\\QA\\CTQA-MPC\\CTSim1\\baseline",

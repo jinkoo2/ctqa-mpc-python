@@ -22,7 +22,7 @@ WATCHER_KEY = "Watcher"
 ELASTIX_KEY = "Elastix"
 POST_PROCESSING_KEY = "PostProcessing"
 DOCUFORMS2_CTQA_TYPE = "docuforms2_ctqa"
-DEFAULT_CASE_FOLDER_REGEX = r"(?i).*_mpc.*"
+DEFAULT_CASE_FOLDER_REGEX = r"^\d{8}_MPC$"
 CASE_FOLDER_NAME_REGEX_KEY = "CASE_FOLDER_NAME_REGEX"
 ERROR_EMAIL_TO_KEY = "error_email_to"
 EVENT_EMAIL_TO_KEY = "event_email_to"
@@ -372,7 +372,7 @@ def watcher_settings(data: dict | None = None) -> dict:
 
 
 def watcher_case_folder_regex(data: dict | None = None) -> str:
-    """Watcher case-folder regex. Missing → ``MMDDYYYY_DailyQA``; empty → any name."""
+    """Watcher case-folder regex. Missing → ``MMDDYYYY_MPC``; empty → any name."""
     if data is None or (isinstance(data, dict) and WATCHER_KEY in data):
         block = watcher_settings(data)
     else:

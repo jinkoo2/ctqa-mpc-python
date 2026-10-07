@@ -157,7 +157,7 @@ def watch(watch_path: str = "", data: dict | None = None) -> None:
     if not path.is_dir():
         raise WatchPathUnavailable(f"watch_path not found: {path}")
     case_regex = watcher_case_folder_regex(settings)
-    min_files = int(cfg.get("min_num_of_files") or 401)
+    min_files = int(cfg.get("min_num_of_files") or 457)
     poll = float(cfg.get("queued_case_poll_sec") or 10.0)
     max_cycles = int(cfg.get("max_wait_cycles") or 180)
     scan_sec = float(cfg.get("disk_scan_for_new_case_detection_sec") or 60.0)

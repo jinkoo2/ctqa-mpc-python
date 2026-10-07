@@ -372,7 +372,7 @@ class SettingsDialog(QDialog):
         self.watch_data_root = QLineEdit(str(watcher.get("data_root") or ""))
         self.watch_case_regex = QLineEdit(watcher_case_folder_regex(watcher))
         self.watch_case_regex.setPlaceholderText(DEFAULT_CASE_FOLDER_REGEX)
-        self.watch_min_files = _int_spin(watcher.get("min_num_of_files") or 401, 1, 10000)
+        self.watch_min_files = _int_spin(watcher.get("min_num_of_files") or 457, 1, 10000)
         self.watch_poll_sec = _float_spin(watcher.get("queued_case_poll_sec") or 10.0, 1.0, 600.0)
         self.watch_max_cycles = _int_spin(watcher.get("max_wait_cycles") or 180, 1, 10000)
         self.watch_disk_scan = QCheckBox("Scan disk for missed case folders (UNC backup)")
@@ -619,9 +619,9 @@ class SettingsDialog(QDialog):
             _hint_label(
                 "Used by CTQAMPC.exe --mode service or python -m ctqa_mpc watch "
                 "(Windows service via NSSM), not the GUI. "
-                "watch_path is the DailyQA import share. "
+                "watch_path is the MPC import share. "
                 "CASE_FOLDER_NAME_REGEX must full-match the import folder name "
-                "(default MMDDYYYY_DailyQA). Leave empty to accept any folder name. "
+                "(default MMDDYYYY_MPC). Leave empty to accept any folder name. "
                 "min_num_of_files waits until the import folder is complete. "
                 "queued_case_poll_sec is how often that count is checked. "
                 "disk_scan_for_new_case_detection walks the share for folders watchdog missed. "

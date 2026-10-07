@@ -6,8 +6,10 @@ from ctqa_mpc.watcher import case_folder_matches, process_import_dir
 
 def test_case_folder_matches_mpc():
     assert case_folder_matches("10022026_MPC", DEFAULT_CASE_FOLDER_REGEX)
-    assert case_folder_matches("foo_mpc_bar", DEFAULT_CASE_FOLDER_REGEX)
+    assert case_folder_matches("01012026_MPC", DEFAULT_CASE_FOLDER_REGEX)
+    assert not case_folder_matches("foo_mpc_bar", DEFAULT_CASE_FOLDER_REGEX)
     assert not case_folder_matches("10022026_DailyQA", DEFAULT_CASE_FOLDER_REGEX)
+    assert not case_folder_matches("10022026_mpc", DEFAULT_CASE_FOLDER_REGEX)
     assert not case_folder_matches("scratch", DEFAULT_CASE_FOLDER_REGEX)
     assert case_folder_matches("anything", "")
 

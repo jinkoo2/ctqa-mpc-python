@@ -10,7 +10,7 @@ python -m ctqa_mpc analyze <case>
 
 Clinic `settings.json` next to the app is gitignored. Start from `settings.sample.json`.
 
-The watcher looks for import folders whose name contains `_mpc` (case-insensitive), maps `{PatientLastName}_{StationName}` to a machine (for example `mpc_ctsim`), finds the 16 metal BBs, compares distances and axis angles to baseline, emails `report.html`, and publishes `{cases_dir}/{YYYYMMDD}_{HHmmss}_{Operator}`.
+The watcher looks for import folders named `MMDDYYYY_MPC` (for example `10062026_MPC`), maps `{PatientLastName}_{StationName}` to a machine (for example `mpc_ctsim`), finds the 16 metal BBs, compares distances and axis angles to baseline, emails `report.html`, and publishes `{cases_dir}/{YYYYMMDD}_{HHmmss}_{Operator}`.
 
 There is no elastix registration and no DocuForms2 step yet (`PostProcessing` is empty).
 
