@@ -47,7 +47,24 @@
     "microsoft_teams": { "webhook_url": "" },
     "discord": { "webhook_url": "" }
   },
-  "PostProcessing": [],
+  "PostProcessing": [
+    {
+      "type": "docuforms2_mpc",
+      "enabled": false,
+      "backend_url": "https://docuforms.example.edu:9001",
+      "verify_ssl": false,
+      "dry_run": false,
+      "attach_dcm_zip": true,
+      "attach_pdf": true,
+      "resubmit": false,
+      "timeout_sec": 300,
+      "form_ids": [
+        {"machine": "CTSim1", "form_id": "ctqa_mpc"}
+      ],
+      "email_success_event_to": ["john.doe@example.edu"],
+      "email_failure_event_to": ["john.doe@example.edu"]
+    }
+  ],
   "MACHINES": [
     {
       "NAME": "CTSim1",

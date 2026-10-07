@@ -23,6 +23,7 @@ NOTIFICATIONS_KEY = "Notifications"
 WATCHER_KEY = "Watcher"
 ELASTIX_KEY = "Elastix"
 POST_PROCESSING_KEY = "PostProcessing"
+DOCUFORMS2_MPC_TYPE = "docuforms2_mpc"
 DOCUFORMS2_CTQA_TYPE = "docuforms2_ctqa"
 DEFAULT_CASE_FOLDER_REGEX = r"^\d{8}_MPC$"
 CASE_FOLDER_NAME_REGEX_KEY = "CASE_FOLDER_NAME_REGEX"
@@ -465,10 +466,10 @@ def label_map(machine: dict) -> dict[int, str]:
     return mapping
 
 
-def default_docuforms2_ctqa_step() -> dict:
-    """Clinic DocuForms2 upload (upload_ctqa input.json)."""
+def default_docuforms2_mpc_step() -> dict:
+    """Clinic DocuForms2 upload of the MPC HTML report."""
     return {
-        "type": DOCUFORMS2_CTQA_TYPE,
+        "type": DOCUFORMS2_MPC_TYPE,
         "enabled": True,
         "backend_url": "https://docuforms.example.edu:9001",
         "verify_ssl": False,
@@ -583,6 +584,10 @@ def find_post_step(type_name: str, data: dict | None = None) -> dict:
         if str(step.get("type") or "").strip() == wanted:
             return dict(step)
     return {}
+
+
+def find_docuforms2_step(data: dict | None = None) -> dict:
+    return find_post_step(DOCUFORMS2_MPC_TYPE, data) or find_post_step(DOCUFORMS2_CTQA_TYPE, data)
 
 
 def upsert_post_step(steps: list, step: dict) -> list[dict]:

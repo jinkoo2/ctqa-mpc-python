@@ -33,7 +33,7 @@ from .app_settings import (
     DEFAULT_CASE_FOLDER_REGEX,
     DEFAULT_TEMP_CLEANUP_OLDER_THAN_DAYS,
     TEMP_CLEANUP_OLDER_THAN_DAYS_KEY,
-    DOCUFORMS2_CTQA_TYPE,
+    DOCUFORMS2_MPC_TYPE,
     ELASTIX_KEY,
     ERROR_EMAIL_TO_KEY,
     EVENT_EMAIL_TO_KEY,
@@ -46,10 +46,10 @@ from .app_settings import (
     RUN_MODES,
     WATCHER_KEY,
     chat_webhook_urls,
-    default_docuforms2_ctqa_step,
+    default_docuforms2_mpc_step,
     elastix_dir_setting,
     email_settings,
-    find_post_step,
+    find_docuforms2_step,
     format_form_ids,
     form_ids_from_machines,
     form_ids_from_step,
@@ -389,8 +389,8 @@ class SettingsDialog(QDialog):
             365,
         )
 
-        df = {**default_docuforms2_ctqa_step(), **find_post_step(DOCUFORMS2_CTQA_TYPE, self._data)}
-        self.df_enabled = QCheckBox("Upload CatPhan results to DocuForms2 after analysis")
+        df = {**default_docuforms2_mpc_step(), **find_docuforms2_step(self._data)}
+        self.df_enabled = QCheckBox("Upload MPC results to DocuForms2 after analysis")
         self.df_enabled.setChecked(_as_bool(df.get("enabled", True)))
         self.df_backend = QLineEdit()
         self.df_backend.setText(str(df.get("backend_url") or ""))
@@ -403,7 +403,7 @@ class SettingsDialog(QDialog):
         self.df_zip.setChecked(_as_bool(df.get("attach_dcm_zip", True)))
         self.df_pdf = QCheckBox("Attach report.pdf (full report.html)")
         self.df_pdf.setChecked(_as_bool(df.get("attach_pdf", True)))
-        self.df_resubmit = QCheckBox("Resubmit cases that already have .docuforms2_ctqa.json")
+        self.df_resubmit = QCheckBox("Resubmit cases that already have .docuforms2_mpc.json")
         self.df_resubmit.setChecked(_as_bool(df.get("resubmit", False)))
         self.df_timeout = QSpinBox()
         self.df_timeout.setRange(30, 3600)
@@ -414,7 +414,7 @@ class SettingsDialog(QDialog):
         self.df_form_ids = QPlainTextEdit()
         form_id_rows = form_ids_from_step(df) or form_ids_from_machines(self._data.get(MACHINES_KEY))
         self.df_form_ids.setPlainText(format_form_ids(form_id_rows))
-        self.df_form_ids.setPlaceholderText("CTSim1 = ctqa_mpc_604")
+        self.df_form_ids.setPlaceholderText("GECTSH = pfcc_gectsh_mpc")
         self.df_form_ids.setTabChangesFocus(True)
         self.df_form_ids.setFixedHeight(110)
         self.df_email_success_event_to = QPlainTextEdit()
@@ -575,16 +575,16 @@ class SettingsDialog(QDialog):
         form.addRow("form_ids", self.df_form_ids)
         form.addRow("email_success_event_to", self.df_email_success_event_to)
         form.addRow("email_failure_event_to", self.df_email_failure_event_to)
-        box = QGroupBox("DocuForms2 CatPhan")
+        box = QGroupBox("DocuForms2 MPC")
         root = QVBoxLayout(box)
         root.addLayout(form)
         root.addWidget(
             _hint_label(
-                "After analysis, CTQA-MPC can push the case to DocuForms2 "
-                "(same payload as _ref_projects/docuforms_import/scripts/upload_ctqa). "
+                "After analysis, CTQA-MPC can push the HTML report to DocuForms2 "
+                "(same pattern as CatPhan and Winston-Lutz). "
                 "form_ids maps machine NAME to a DocuForms2 form (one per line: "
-                "CTSim1 = ctqa_mpc_604). A machine with no row is skipped. "
-                "Successful uploads write .docuforms2_ctqa.json in the case folder so the "
+                "GECTSH = pfcc_gectsh_mpc). A machine with no row is skipped. "
+                "Successful uploads write .docuforms2_mpc.json in the case folder so the "
                 "watcher does not submit twice. Cases are not moved. "
                 "email_success_event_to gets ok / dry-run; email_failure_event_to gets failed "
                 "(clinic SMTP from Email). Skipped cases are not emailed. "
@@ -797,7 +797,8 @@ class SettingsDialog(QDialog):
         watcher.pop("case_folder_name_regex", None)
         data[WATCHER_KEY] = watcher
         df_step = {
-            **default_docuforms2_ctqa_step(),
+            **default_docuforms2_mpc_step(),
+            "type": DOCUFORMS2_MPC_TYPE,
             "enabled": self.df_enabled.isChecked(),
             "backend_url": self.df_backend.text().strip(),
             "verify_ssl": self.df_verify_ssl.isChecked(),
@@ -814,9 +815,12 @@ class SettingsDialog(QDialog):
                 self.df_email_failure_event_to.toPlainText()
             ),
         }
-        data[POST_PROCESSING_KEY] = upsert_post_step(
-            post_processing_steps(self._data), df_step
-        )
+        existing = [
+            step
+            for step in post_processing_steps(self._data)
+            if str(step.get("type") or "").strip() not in (DOCUFORMS2_MPC_TYPE, "docuforms2_ctqa")
+        ]
+        data[POST_PROCESSING_KEY] = upsert_post_step(existing, df_step)
         machines = data.get(MACHINES_KEY)
         if isinstance(machines, list):
             for machine in machines:
