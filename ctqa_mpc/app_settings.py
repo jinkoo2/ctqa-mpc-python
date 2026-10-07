@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
@@ -24,6 +26,8 @@ POST_PROCESSING_KEY = "PostProcessing"
 DOCUFORMS2_CTQA_TYPE = "docuforms2_ctqa"
 DEFAULT_CASE_FOLDER_REGEX = r"^\d{8}_MPC$"
 CASE_FOLDER_NAME_REGEX_KEY = "CASE_FOLDER_NAME_REGEX"
+TEMP_CLEANUP_OLDER_THAN_DAYS_KEY = "temp_cleanup_older_than_days"
+DEFAULT_TEMP_CLEANUP_OLDER_THAN_DAYS = 7
 ERROR_EMAIL_TO_KEY = "error_email_to"
 EVENT_EMAIL_TO_KEY = "event_email_to"
 NEW_CASE_EMAIL_TO_KEY = "new_case_email_to"
@@ -371,6 +375,21 @@ def watcher_settings(data: dict | None = None) -> dict:
     return block if isinstance(block, dict) else {}
 
 
+def temp_cleanup_settings(data: dict | None = None) -> dict:
+    """How old leftover scratch folders must be before post-analysis cleanup."""
+    settings = data if data is not None else load_settings()
+    watcher = watcher_settings(settings)
+    extra = settings.get("TempCleanup") if isinstance((settings or {}).get("TempCleanup"), dict) else {}
+    raw = watcher.get(TEMP_CLEANUP_OLDER_THAN_DAYS_KEY)
+    if raw in (None, "") and TEMP_CLEANUP_OLDER_THAN_DAYS_KEY in extra:
+        raw = extra.get(TEMP_CLEANUP_OLDER_THAN_DAYS_KEY)
+    try:
+        days = int(raw if raw not in (None, "") else DEFAULT_TEMP_CLEANUP_OLDER_THAN_DAYS)
+    except (TypeError, ValueError):
+        days = DEFAULT_TEMP_CLEANUP_OLDER_THAN_DAYS
+    return {"older_than_days": max(1, days)}
+
+
 def watcher_case_folder_regex(data: dict | None = None) -> str:
     """Watcher case-folder regex. Missing → ``MMDDYYYY_MPC``; empty → any name."""
     if data is None or (isinstance(data, dict) and WATCHER_KEY in data):
@@ -581,3 +600,143 @@ def upsert_post_step(steps: list, step: dict) -> list[dict]:
     if not found and kind:
         out.append(dict(step))
     return out
+
+
+class SettingsPathUnavailable(RuntimeError):
+    """Required settings.json folder or file is missing at startup."""
+
+
+@dataclass(frozen=True)
+class SettingsPathCheck:
+    label: str
+    path: str
+    kind: str
+    required: bool
+    ok: bool
+
+    @property
+    def empty(self) -> bool:
+        return not str(self.path or "").strip()
+
+    @property
+    def status(self) -> str:
+        if self.empty:
+            return "empty"
+        return "ok" if self.ok else "missing"
+
+
+def _path_exists(path: Path, kind: str) -> bool:
+    try:
+        return path.is_dir() if kind == "dir" else path.is_file()
+    except OSError:
+        return False
+
+
+def _settings_path_check(label: str, raw, kind: str, required: bool) -> SettingsPathCheck | None:
+    text = str(raw or "").strip()
+    if not text:
+        if required:
+            return SettingsPathCheck(label, "", kind, True, False)
+        return None
+    path = Path(text).expanduser()
+    return SettingsPathCheck(label, str(path), kind, required, _path_exists(path, kind))
+
+
+def collect_settings_path_checks(
+    data: dict | None = None,
+    *,
+    watch_path: str | Path | None = None,
+    role: str = "gui",
+) -> list[SettingsPathCheck]:
+    """Folders and files from settings.json that the app or watcher needs."""
+    settings = data if data is not None else load_settings()
+    clinic = not is_simple_run_mode(settings)
+    require_watcher = role == "watch" or clinic
+    checks: list[SettingsPathCheck] = []
+
+    cfg = settings_path()
+    checks.append(SettingsPathCheck("settings.json", str(cfg), "file", True, cfg.is_file()))
+
+    watcher = watcher_settings(settings)
+    effective_watch = watch_path if watch_path is not None else watcher.get("watch_path")
+    item = _settings_path_check("Watcher.watch_path", effective_watch, "dir", require_watcher)
+    if item:
+        checks.append(item)
+    data_root = watcher.get("data_root")
+    item = _settings_path_check(
+        "Watcher.data_root",
+        data_root,
+        "dir",
+        require_watcher and bool(str(data_root or "").strip()),
+    )
+    if item:
+        checks.append(item)
+
+    for machine in named_machines(settings):
+        name = machine_name(machine) or "?"
+        prefix = f"MACHINES[{name}]"
+        require_machine = require_watcher
+        for key in ("machine_dir", "baseline_dir", "cases_dir"):
+            item = _settings_path_check(f"{prefix}.{key}", machine.get(key), "dir", require_machine)
+            if item:
+                checks.append(item)
+        item = _settings_path_check(
+            f"{prefix}.html_report_template",
+            machine.get("html_report_template"),
+            "file",
+            False,
+        )
+        if item:
+            checks.append(item)
+
+    viewer = settings.get("Viewer") if isinstance(settings.get("Viewer"), dict) else {}
+    labeler = (viewer or {}).get("vtk_image_labeler_3d") or settings.get("vtk_image_labeler_3d")
+    item = _settings_path_check("Viewer.vtk_image_labeler_3d", labeler, "file", False)
+    if item:
+        checks.append(item)
+    return checks
+
+
+def missing_settings_paths(checks: list[SettingsPathCheck], *, required_only: bool = False) -> list[SettingsPathCheck]:
+    return [c for c in checks if not c.ok and (c.required or not required_only)]
+
+
+def format_settings_path_report(checks: list[SettingsPathCheck]) -> str:
+    lines = ["Checked settings folders and files:"]
+    for check in checks:
+        lines.append(f"  {check.status.upper():<8} {check.label}")
+        lines.append(f"           {check.path or '(empty)'}")
+    return "\n".join(lines)
+
+
+def log_settings_path_checks(
+    checks: list[SettingsPathCheck],
+    log: logging.Logger | None = None,
+) -> None:
+    log = log or logging.getLogger(__name__)
+    for check in checks:
+        message = f"{check.label}: {check.path or '(empty)'}"
+        if check.ok:
+            log.info("settings path ok: %s", message)
+        elif check.required:
+            log.error("settings path missing: %s", message)
+        else:
+            log.warning("settings path missing: %s", message)
+
+
+def check_settings_paths(
+    data: dict | None = None,
+    *,
+    watch_path: str | Path | None = None,
+    role: str = "gui",
+    require: bool = False,
+    log: logging.Logger | None = None,
+) -> list[SettingsPathCheck]:
+    """Log configured paths. ``require=True`` raises if a required path is missing."""
+    checks = collect_settings_path_checks(data, watch_path=watch_path, role=role)
+    log_settings_path_checks(checks, log)
+    if require:
+        missing = missing_settings_paths(checks, required_only=True)
+        if missing:
+            raise SettingsPathUnavailable(format_settings_path_report(checks))
+    return checks

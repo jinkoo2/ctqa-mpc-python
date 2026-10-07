@@ -31,6 +31,8 @@ from PyQt5.QtWidgets import (
 from .app_settings import (
     CASE_FOLDER_NAME_REGEX_KEY,
     DEFAULT_CASE_FOLDER_REGEX,
+    DEFAULT_TEMP_CLEANUP_OLDER_THAN_DAYS,
+    TEMP_CLEANUP_OLDER_THAN_DAYS_KEY,
     DOCUFORMS2_CTQA_TYPE,
     ELASTIX_KEY,
     ERROR_EMAIL_TO_KEY,
@@ -381,6 +383,11 @@ class SettingsDialog(QDialog):
             watcher.get("disk_scan_for_new_case_detection_sec") or 60.0, 5.0, 3600.0
         )
         self.watch_min_series = _int_spin(watcher.get("min_series_dicom_files") or 100, 1, 10000)
+        self.watch_temp_days = _int_spin(
+            watcher.get(TEMP_CLEANUP_OLDER_THAN_DAYS_KEY) or DEFAULT_TEMP_CLEANUP_OLDER_THAN_DAYS,
+            1,
+            365,
+        )
 
         df = {**default_docuforms2_ctqa_step(), **find_post_step(DOCUFORMS2_CTQA_TYPE, self._data)}
         self.df_enabled = QCheckBox("Upload CatPhan results to DocuForms2 after analysis")
@@ -612,6 +619,7 @@ class SettingsDialog(QDialog):
         form.addRow("disk_scan_for_new_case_detection", self.watch_disk_scan)
         form.addRow("disk_scan_for_new_case_detection_sec", self.watch_disk_scan_sec)
         form.addRow("min_series_dicom_files", self.watch_min_series)
+        form.addRow("temp_cleanup_older_than_days", self.watch_temp_days)
         box = QGroupBox("Watcher (Windows service)")
         root = QVBoxLayout(box)
         root.addLayout(form)
@@ -625,8 +633,10 @@ class SettingsDialog(QDialog):
                 "min_num_of_files waits until the import folder is complete. "
                 "queued_case_poll_sec is how often that count is checked. "
                 "disk_scan_for_new_case_detection walks the share for folders watchdog missed. "
-                "Sort, register, and analyze run in the Windows user temp folder; "
+                "Sort and analyze run in the Windows user temp folder; "
                 "the finished case folder is copied to the machine cases_dir. "
+                "temp_cleanup_older_than_days deletes leftover ctqa_sort_* folders "
+                "older than that many days after each analysis (background thread). "
                 "Analysis settings come from MACHINES."
             )
         )
@@ -776,10 +786,13 @@ class SettingsDialog(QDialog):
                 "disk_scan_for_new_case_detection": self.watch_disk_scan.isChecked(),
                 "disk_scan_for_new_case_detection_sec": self.watch_disk_scan_sec.value(),
                 "min_series_dicom_files": self.watch_min_series.value(),
+                TEMP_CLEANUP_OLDER_THAN_DAYS_KEY: self.watch_temp_days.value(),
             }
         )
         watcher.pop("temp_dir", None)
         watcher.pop("dicom_sort_base_dir", None)
+        watcher.pop("temp_cleanup_weekday", None)
+        watcher.pop("temp_cleanup_at", None)
         watcher.pop("directory_name_contains", None)
         watcher.pop("case_folder_name_regex", None)
         data[WATCHER_KEY] = watcher

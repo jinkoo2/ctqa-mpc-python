@@ -9,6 +9,7 @@ from ctqa_mpc.analysis import (
     axes_and_angles,
     find_markers,
     pairwise_distances,
+    threshold_bb,
     write_case_result,
 )
 from ctqa_mpc.app_settings import is_case_folder_name, machine_by_patient_station
@@ -48,6 +49,17 @@ def _volume_with_bbs(points, *, value=1000.0) -> sitk.Image:
     out = sitk.GetImageFromArray(arr)
     out.CopyInformation(image)
     return out
+
+
+def test_threshold_bb_int16_high_hu():
+    arr = np.zeros((5, 5, 5), dtype=np.int16)
+    arr[2, 2, 2] = 24037
+    image = sitk.GetImageFromArray(arr)
+    out = threshold_bb(image, 5000.0)
+    mask = sitk.GetArrayFromImage(out)
+    assert mask[2, 2, 2] == 255
+    assert int(mask.max()) == 255
+    assert int(mask.min()) == 0
 
 
 def test_find_markers_and_distances():

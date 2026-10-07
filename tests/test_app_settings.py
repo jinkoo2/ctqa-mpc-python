@@ -1,12 +1,18 @@
+import pytest
+
 from ctqa_mpc.app_settings import (
+    SettingsPathUnavailable,
     case_recency_key,
     SETTINGS_NAME,
+    check_settings_paths,
+    collect_settings_path_checks,
     elastix_dir_setting,
     is_case_folder_name,
     is_under_directory,
     list_case_folders,
     machine_by_station,
     machine_display_name,
+    missing_settings_paths,
     phantom_id,
     phantom_name,
     save_settings,
@@ -109,3 +115,59 @@ def test_is_under_directory(tmp_path):
     assert is_under_directory(root, root, allow_root=True)
     assert not is_under_directory(sibling, root)
     assert not is_under_directory(tmp_path, root)
+
+
+def test_collect_settings_path_checks(tmp_path, monkeypatch):
+    cfg = tmp_path / SETTINGS_NAME
+    monkeypatch.setenv("CTQA_MPC_SETTINGS", str(cfg))
+    watch = tmp_path / "import"
+    data_root = tmp_path / "root"
+    machine_dir = data_root / "CTSim1"
+    baseline = machine_dir / "baseline"
+    cases = machine_dir / "cases"
+    template = machine_dir / "report.html"
+    labeler = tmp_path / "ImageLabeler3D.exe"
+    for folder in (watch, data_root, machine_dir, baseline, cases):
+        folder.mkdir(parents=True, exist_ok=True)
+    template.write_text("<html></html>", encoding="utf-8")
+    labeler.write_bytes(b"mz")
+    save_settings(
+        {
+            "RunMode": "Clinic",
+            "MACHINES": [{"NAME": "CTSim1"}],
+            "Watcher": {"watch_path": str(watch), "data_root": str(data_root)},
+            "Viewer": {"vtk_image_labeler_3d": str(labeler)},
+        },
+        cfg,
+    )
+    data = {
+        "RunMode": "Clinic",
+        "Watcher": {"watch_path": str(watch), "data_root": str(data_root)},
+        "Viewer": {"vtk_image_labeler_3d": str(labeler)},
+        "MACHINES": [
+            {
+                "NAME": "CTSim1",
+                "machine_dir": str(machine_dir),
+                "baseline_dir": str(baseline),
+                "cases_dir": str(cases),
+                "html_report_template": str(template),
+            }
+        ],
+    }
+    checks = collect_settings_path_checks(data, role="watch")
+    assert missing_settings_paths(checks) == []
+    labels = [c.label for c in checks]
+    assert "Watcher.watch_path" in labels
+    assert "MACHINES[CTSim1].baseline_dir" in labels
+    assert "Viewer.vtk_image_labeler_3d" in labels
+
+    data["MACHINES"][0]["baseline_dir"] = str(tmp_path / "missing-baseline")
+    data["MACHINES"][0]["html_report_template"] = str(tmp_path / "missing.html")
+    checks = check_settings_paths(data, role="watch", require=False)
+    missing = {c.label: c for c in missing_settings_paths(checks)}
+    assert "MACHINES[CTSim1].baseline_dir" in missing
+    assert missing["MACHINES[CTSim1].baseline_dir"].required
+    assert "MACHINES[CTSim1].html_report_template" in missing
+    assert not missing["MACHINES[CTSim1].html_report_template"].required
+    with pytest.raises(SettingsPathUnavailable, match="baseline_dir"):
+        check_settings_paths(data, role="watch", require=True)

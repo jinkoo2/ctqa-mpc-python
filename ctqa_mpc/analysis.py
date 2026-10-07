@@ -96,9 +96,32 @@ def named_string_list(machine: dict | None, key: str) -> list[str]:
     return [p.strip() for p in str(value or "").replace(";", ",").split(",") if p.strip()]
 
 
+def _threshold_upper(image: sitk.Image, th: float) -> float:
+    """Upper bound that fits the pixel type. ``1e12`` overflows int16 CT.mha."""
+    arr = sitk.GetArrayViewFromImage(image)
+    if np.issubdtype(arr.dtype, np.integer):
+        upper = float(np.iinfo(arr.dtype).max)
+    else:
+        upper = float(np.finfo(arr.dtype).max)
+    lower = float(th)
+    if lower > upper:
+        raise ValueError(
+            f"threshold th={lower} exceeds {image.GetPixelIDTypeAsString()} max {upper}"
+        )
+    return upper
+
+
 def threshold_bb(image: sitk.Image, th: float) -> sitk.Image:
     """Voxels >= *th* become 255, else 0 (C# ``threshold_3d_f(..., 0, th, 255)``)."""
-    return sitk.BinaryThreshold(image, lowerThreshold=th, upperThreshold=1e12, insideValue=255, outsideValue=0)
+    lower = float(th)
+    upper = _threshold_upper(image, lower)
+    return sitk.BinaryThreshold(
+        image,
+        lowerThreshold=lower,
+        upperThreshold=upper,
+        insideValue=255,
+        outsideValue=0,
+    )
 
 
 def _clip_index_size(image: sitk.Image, i0, i1) -> tuple[list[int], list[int]]:

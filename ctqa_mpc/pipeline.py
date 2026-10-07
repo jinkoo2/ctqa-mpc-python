@@ -77,5 +77,8 @@ def run_case(
         run_post_processing(case, machine, data=settings)
     except Exception:
         logger.exception("post-processing failed for %s", case)
+    from .temp_cleanup import start_post_analysis_cleanup
+
+    start_post_analysis_cleanup(settings)
     logger.info("case complete: %s", case)
     return report

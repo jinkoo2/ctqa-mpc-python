@@ -23,7 +23,8 @@
     "max_wait_cycles": 180,
     "disk_scan_for_new_case_detection": true,
     "disk_scan_for_new_case_detection_sec": 60.0,
-    "min_series_dicom_files": 100
+    "min_series_dicom_files": 100,
+    "temp_cleanup_older_than_days": 7
   },
   "Notifications": {
     "email": {

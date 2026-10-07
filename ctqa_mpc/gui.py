@@ -32,7 +32,9 @@ from PyQt5.QtWidgets import (
 )
 
 from .app_settings import (
+    check_settings_paths,
     default_machine,
+    format_settings_path_report,
     get_institution,
     is_simple_run_mode,
     is_under_directory,
@@ -41,6 +43,7 @@ from .app_settings import (
     machine_by_name,
     machine_display_name,
     machine_name,
+    missing_settings_paths,
     named_machines,
     simple_machine_name,
     watcher_settings,
@@ -691,6 +694,7 @@ class MainWindow(QMainWindow):
         self.logout_btn.setVisible(method == USER_ID_OIDC and signed_in)
 
     def _after_shown(self) -> None:
+        self._check_settings_paths()
         if user_needs_email(self.settings):
             QMessageBox.information(
                 self,
@@ -699,6 +703,17 @@ class MainWindow(QMainWindow):
                 "to receive QA case notifications.",
             )
             self.open_user_settings(prompt_email=True)
+
+    def _check_settings_paths(self) -> None:
+        checks = check_settings_paths(self.settings, role="gui", require=False, log=logger)
+        missing = missing_settings_paths(checks)
+        if not missing:
+            return
+        QMessageBox.warning(
+            self,
+            APP_TITLE,
+            format_settings_path_report(checks),
+        )
 
     def open_user_settings(self, prompt_email: bool = False):
         from .user_settings_dialog import UserSettingsDialog
@@ -803,6 +818,7 @@ class MainWindow(QMainWindow):
         self.machine = default_machine(self.settings)
         self._apply_run_mode_ui()
         self._refresh_heading()
+        self._check_settings_paths()
 
     def _clinic_machines(self) -> list[dict]:
         machines = named_machines(self.settings)
