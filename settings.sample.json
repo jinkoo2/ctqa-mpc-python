@@ -1,0 +1,100 @@
+{
+  "Institution": "Example Cancer Center",
+  "RunMode": "Clinic",
+  "Identity": {
+    "user_id_method": "OSUser",
+    "oidc": {
+      "issuer": "https://idp.example.edu/realms/example",
+      "client_id": "ctqa-mpc",
+      "scopes": "openid profile email",
+      "redirect_uri": "http://127.0.0.1:17844/callback",
+      "registration_url": "https://idp.example.edu/realms/example/account/"
+    }
+  },
+  "Viewer": {
+    "vtk_image_labeler_3d": ""
+  },
+  "Watcher": {
+    "watch_path": "\\\\fileserver\\QA\\CT_Import",
+    "data_root": "\\\\fileserver\\QA\\CTQA-MPC",
+    "CASE_FOLDER_NAME_REGEX": "(?i).*_mpc.*",
+    "min_num_of_files": 401,
+    "queued_case_poll_sec": 10.0,
+    "max_wait_cycles": 180,
+    "disk_scan_for_new_case_detection": true,
+    "disk_scan_for_new_case_detection_sec": 60.0,
+    "min_series_dicom_files": 100
+  },
+  "Notifications": {
+    "email": {
+      "error_email_to": [
+        "physics@example.edu"
+      ],
+      "event_email_to": [
+        "physics@example.edu"
+      ],
+      "new_case_email_to": [],
+      "email_from": "ctqa",
+      "email_domain": "example.edu",
+      "email_host_address": "smtp.example.edu",
+      "email_host_port": 25,
+      "enable_ssl": false,
+      "email_from_enc_pw": ""
+    },
+    "google_chat": { "webhook_url": "" },
+    "slack": { "webhook_url": "" },
+    "microsoft_teams": { "webhook_url": "" },
+    "discord": { "webhook_url": "" }
+  },
+  "PostProcessing": [],
+  "MACHINES": [
+    {
+      "NAME": "CTSim1",
+      "station_names": ["ctsim"],
+      "patient_last_names": ["mpc", "jk"],
+      "phantom": { "id": "mpc", "name": "MPC" },
+      "machine_dir": "\\\\fileserver\\QA\\CTQA-MPC\\CTSim1",
+      "baseline_dir": "\\\\fileserver\\QA\\CTQA-MPC\\CTSim1\\baseline",
+      "cases_dir": "\\\\fileserver\\QA\\CTQA-MPC\\CTSim1\\cases",
+      "html_report_template": "",
+      "report_title": "CT Geometry Check using MPC phantom (CTSim1)",
+      "num_of_markers": 16,
+      "th": 5000,
+      "search_box_size_mm": 50.0,
+      "dist_tol": 1.0,
+      "point_to_point_dist_tol": 5.0,
+      "axis_tol_deg": 1.0,
+      "pt0": [-44.4, -106.6, 73.8],
+      "pt1": [103.2, -45.8, 73.8],
+      "pt2": [103.2, 42.4, 73.8],
+      "pt3": [-44.4, 104.6, 73.8],
+      "pt4": [44.4, -106.6, 52.5],
+      "pt5": [-103.9, -44.4, 52.5],
+      "pt6": [44.4, 103.2, 31.3],
+      "pt7": [-103.9, 41.7, 20],
+      "pt8": [0.7, 112.1, -18.8],
+      "pt9": [113.5, -2.1, -27.5],
+      "pt10": [-81.3, -83.4, -48.7],
+      "pt11": [-81.3, 80, -48.7],
+      "pt12": [0, -114.2, -72.5],
+      "pt13": [81.3, -82, -72.5],
+      "pt14": [81.3, 79.3, -72.5],
+      "pt15": [-113.5, -2.1, -72.5],
+      "z_axis_cross_product": ["z0", "z1", "z2", "z3", "z4", "z5"],
+      "z0": ["pt0", "pt2", "pt3"],
+      "z1": ["pt1", "pt3", "pt0"],
+      "z2": ["pt3", "pt0", "pt2"],
+      "z3": ["pt12", "pt14", "pt15"],
+      "z4": ["pt13", "pt14", "pt15"],
+      "z5": ["pt14", "pt15", "pt12"],
+      "y_axis_vectors": ["y0", "y1", "y2", "y3"],
+      "y0": ["pt0", "pt3"],
+      "y1": ["pt1", "pt2"],
+      "y2": ["pt10", "pt11"],
+      "y3": ["pt13", "pt14"],
+      "new_case_email_to": [
+        "physics@example.edu"
+      ]
+    }
+  ]
+}

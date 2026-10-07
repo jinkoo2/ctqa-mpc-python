@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+packaging/CTQAMPC.spec
+.venv/
+venv/
+.env
+/settings.json
+# Local-only: _sample_data, _logs, _users, etc.
+/_*
