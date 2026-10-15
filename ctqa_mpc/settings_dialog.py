@@ -81,6 +81,7 @@ from .identity import (
     oidc_settings,
     upsert_os_user_profile,
 )
+from .watcher import DEFAULT_MAX_CONCURRENT_CASES
 from .watch_service import (
     FROZEN_APP_PARAMETERS,
     SOURCE_APP_PARAMETERS,
@@ -379,6 +380,9 @@ class SettingsDialog(QDialog):
             watcher.get("disk_scan_for_new_case_detection_sec") or 60.0, 5.0, 3600.0
         )
         self.watch_min_series = _int_spin(watcher.get("min_series_dicom_files") or 100, 1, 10000)
+        self.watch_max_concurrent = _int_spin(
+            watcher.get("max_concurrent_cases") or DEFAULT_MAX_CONCURRENT_CASES, 1, 100
+        )
         self.watch_temp_days = _int_spin(
             watcher.get(TEMP_CLEANUP_OLDER_THAN_DAYS_KEY) or DEFAULT_TEMP_CLEANUP_OLDER_THAN_DAYS,
             1,
@@ -613,6 +617,7 @@ class SettingsDialog(QDialog):
         form.addRow("disk_scan_for_new_case_detection", self.watch_disk_scan)
         form.addRow("disk_scan_for_new_case_detection_sec", self.watch_disk_scan_sec)
         form.addRow("min_series_dicom_files", self.watch_min_series)
+        form.addRow("max_concurrent_cases", self.watch_max_concurrent)
         form.addRow("temp_cleanup_older_than_days", self.watch_temp_days)
         box = QGroupBox("Watcher (Windows service)")
         root = QVBoxLayout(box)
@@ -627,6 +632,9 @@ class SettingsDialog(QDialog):
                 "min_num_of_files waits until the import folder is complete. "
                 "queued_case_poll_sec is how often that count is checked. "
                 "disk_scan_for_new_case_detection walks the share for folders watchdog missed. "
+                "max_concurrent_cases caps how many cases analyze at once -- extra cases "
+                "queue and run as workers free up (protects against many old import "
+                "folders being dropped in for reprocessing at once). "
                 "Sort and analyze run in the Windows user temp folder; "
                 "the finished case folder is copied to the machine cases_dir. "
                 "temp_cleanup_older_than_days deletes leftover ctqa_sort_* folders "
@@ -776,6 +784,7 @@ class SettingsDialog(QDialog):
                 "disk_scan_for_new_case_detection": self.watch_disk_scan.isChecked(),
                 "disk_scan_for_new_case_detection_sec": self.watch_disk_scan_sec.value(),
                 "min_series_dicom_files": self.watch_min_series.value(),
+                "max_concurrent_cases": self.watch_max_concurrent.value(),
                 TEMP_CLEANUP_OLDER_THAN_DAYS_KEY: self.watch_temp_days.value(),
             }
         )

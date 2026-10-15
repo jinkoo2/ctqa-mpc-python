@@ -7,6 +7,7 @@ import re
 import shutil
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
@@ -35,6 +36,9 @@ from .pipeline import copy_tree_files, run_case
 from .image_io import scratch_parent
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_MAX_CONCURRENT_CASES = 2
+
 
 class WatchPathUnavailable(RuntimeError):
     pass
@@ -168,8 +172,10 @@ def watch(watch_path: str = "", data: dict | None = None) -> None:
     max_cycles = int(cfg.get("max_wait_cycles") or 180)
     scan_sec = float(cfg.get("disk_scan_for_new_case_detection_sec") or 60.0)
     do_scan = bool(cfg.get("disk_scan_for_new_case_detection", True))
+    max_concurrent = max(1, int(cfg.get("max_concurrent_cases") or DEFAULT_MAX_CONCURRENT_CASES))
     seen: set[str] = set()
     lock = threading.Lock()
+    executor = ThreadPoolExecutor(max_workers=max_concurrent, thread_name_prefix="ctqa_mpc_case")
 
     def handle(folder: Path) -> None:
         key = str(folder.resolve())
@@ -190,16 +196,25 @@ def watch(watch_path: str = "", data: dict | None = None) -> None:
         except Exception:
             logger.exception("failed processing %s", folder)
 
+    def submit(folder: Path) -> None:
+        # Bounded: at most max_concurrent cases analyze at once; extra
+        # submissions queue inside the executor and run as workers free up.
+        # The seen-set dedup above still applies once a queued submission
+        # actually starts running, so duplicate submissions of the same
+        # folder (e.g. from both the watchdog event and the disk-scan
+        # backup) are harmless.
+        executor.submit(handle, folder)
+
     class Handler(FileSystemEventHandler):
         def on_created(self, event):
             folder = Path(event.src_path)
             if folder.is_dir() or event.is_directory:
-                threading.Thread(target=handle, args=(Path(event.src_path),), daemon=True).start()
+                submit(Path(event.src_path))
 
         def on_moved(self, event):
             dest = Path(getattr(event, "dest_path", event.src_path))
             if dest.is_dir() or event.is_directory:
-                threading.Thread(target=handle, args=(dest,), daemon=True).start()
+                submit(dest)
 
     send_event("CTQA-MPC watcher starting", str(path), settings)
     try:
@@ -211,14 +226,14 @@ def watch(watch_path: str = "", data: dict | None = None) -> None:
     observer = Observer()
     observer.schedule(Handler(), str(path), recursive=False)
     observer.start()
-    logger.info("watching %s", path)
+    logger.info("watching %s (max_concurrent_cases=%s)", path, max_concurrent)
     try:
         while True:
             if do_scan:
                 try:
                     for child in path.iterdir():
                         if child.is_dir() and _should_handle(child, case_regex):
-                            threading.Thread(target=handle, args=(child,), daemon=True).start()
+                            submit(child)
                 except OSError:
                     logger.exception("disk scan failed for %s", path)
             time.sleep(max(scan_sec, poll))
@@ -226,3 +241,4 @@ def watch(watch_path: str = "", data: dict | None = None) -> None:
         send_event("CTQA-MPC watcher stopping", str(path), settings)
         observer.stop()
     observer.join()
+    executor.shutdown(wait=False)
